@@ -22,9 +22,7 @@ if (row === undefined) {
             status INTEGER,
             referer TEXT,
             useragent TEXT
-        )
-
-    `
+        )`
     
     logdb.exec(sqlInit)
     console.log('Your database has been initialized with a new table.')
