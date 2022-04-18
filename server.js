@@ -1,9 +1,8 @@
-// define app with express
 const express = require('express')
 const app = express()
+const args = require('minimist')(process.argv.slice(2))
 const fs = require('fs')
-
-// require database and coin scripts
+const morgan = require('morgan')
 const db = require('./database.js')
 const coin = require('./coin.js')
 
@@ -11,7 +10,6 @@ const coin = require('./coin.js')
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const args = require('minimist')(process.argv.slice(2))
 args['port', 'debug', 'log', 'help']
 
 // print help message
@@ -43,8 +41,7 @@ const server = app.listen(port, () => {
 
 // log == true
 if (args.log == true) {
-    const morgan = require('morgan')
-    const logstream = fs.createWriteStream('access.log', { flags: 'a' })
+    const logstream = fs.createWriteStream('./access.log', { flags: 'a' })
     app.use(morgan('combined', { stream: logstream }))
 }
 
@@ -63,8 +60,8 @@ app.use((req, res, next) => {
         useragent: req.headers['user-agent']
     }
 
-    const stmt = db.prepare('INSERT INTO accesslog ( remoteaddr, remoteuser, time, method, url, protocol, httpversion, secure, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-    const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.secure, logdata.status, logdata.referer, logdata.useragent)
+    const stmt = db.prepare('INSERT INTO accesslog ( remoteaddr, remoteuser, time, method, url, protocol, httpversion, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
     res.status(200).json(info)
     next()
 })
@@ -76,6 +73,23 @@ app.get('/app/', (req, res) => {
     res.writeHead(res.statusCode, { 'Content-Type' : 'text/plain' })
     res.end(res.statusCode + ' ' + res.statusMessage)
 })
+
+// log and error testing
+if (args.debug == true) {
+    // create endpoint /app/log/access that returns accesslog
+    app.get("/app/log/access", (req, res) => {
+        try {
+            const stmt = db.prepare('SELECT * FROM accesslog').all()
+            res.status(200).json(stmt)
+        } catch {
+            console.log("EXIT")
+        }
+    });
+
+    app.get('/app/error', (req, res) => {
+        throw new Error('Error test successful.')
+    });
+}
 
 app.get('/app/flip', (req, res) => {
     res.status(200).json({ 'flip': coin.coinFlip() })
@@ -96,23 +110,6 @@ app.get('/app/flip/call/tails', (req, res) => {
     const guess = coin.flipACoin('tails')
     res.status(200).json({ 'call': guess.call, 'flip': guess.flip, 'result': guess.result })
 })
-
-// log and error testing
-if (args.debug == true) {
-    // create endpoint /app/log/access that returns accesslog
-    app.get("/app/log/access", (req, res) => {
-        try {
-            const stmt = db.prepare('SELECT * FROM accesslog').all()
-            res.status(200).json(stmt)
-        } catch {
-            console.error(e)
-        }
-    });
-
-    app.get('/app/error', (req, res) => {
-        throw new Error('Error test successful.') // Express will catch this on its own.
-    });
-}
 
 app.use(function(req, res){
 	res.json({"message": "Endpoint not found. (404)"});
