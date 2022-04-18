@@ -1,5 +1,3 @@
-// require coin module
-const coin = require('./coin.js')
 // define app with express
 const express = require('express')
 const app = express()
@@ -10,6 +8,9 @@ const logdb = require('./database.js')
 // make express use built-in body parser
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// require coin module
+const coin = require('./coin.js')
 
 const args = require('minimist')(process.argv.slice(2))
 args['port', 'debug', 'log', 'help']
@@ -64,8 +65,8 @@ app.use((req, res, next) => {
         useragent: req.headers['user-agent']
     }
 
-    const stmt = logdb.prepare('INSERT INTO accesslog ( remoteaddr, remoteuser, time, method, url, protocol, httpversion, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-    const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
+    const stmt = logdb.prepare('INSERT INTO accesslog ( remoteaddr, remoteuser, time, method, url, protocol, httpversion, secure, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.secure, logdata.status, logdata.referer, logdata.useragent)
     res.status(200).json(info)
     next()
 })
@@ -110,11 +111,17 @@ if (args.debug) {
     })
     
     app.get('/app/error', (req, res) => {
-        res.status(500)
-        throw new Error('Error test completed successfully.')
+        throw new Error('Error test successful.')
     })
 }
 
 app.use(function(req, res){
-    res.status(404).send('404 NOT FOUND')
+	res.json({"message":"Endpoint not found. (404)"});
+    res.status(404);
+});
+
+process.on('SIGTERM', () => {
+    server.close(() => {
+        console.log('Server stopped')
+    })
 })
