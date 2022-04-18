@@ -1,0 +1,23 @@
+{
+  "name": "a04-elaine331917",
+  "version": "0.0.1",
+  "description": "a04",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/comp426-2022-spring/a04-elaine331917.git"
+  },
+  "author": "elaine331917",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/comp426-2022-spring/a04-elaine331917/issues"
+  },
+  "homepage": "https://github.com/comp426-2022-spring/a04-elaine331917#readme",
+  "dependencies": {
+    "better-sqlite3": "^7.5.1",
+    "minimist": "^1.2.6"
+  }
+}
