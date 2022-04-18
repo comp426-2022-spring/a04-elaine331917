@@ -1,3 +1,4 @@
+"use strict"
 const database = require('better-sqlite3')
 
 const logdb = new database('log.db')
@@ -26,6 +27,7 @@ if (row === undefined) {
     `
     
     logdb.exec(sqlInit)
+    console.log('Database has been initialized with a new table and two entries')
 } else {
     console.log('Log database exists.')
 }

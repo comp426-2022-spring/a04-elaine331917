@@ -1,13 +1,13 @@
 // require coin module
 const coin = require('./coin.js')
-// create app
+// define app with express
 const express = require('express')
 const app = express()
 
 // require database script
-const logdb = require('./database')
+const logdb = require('./database.js')
 
-// allow express to read urlencoded and json
+// make express use built-in body parser
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -16,7 +16,6 @@ const errorhandler = require('errorhandler')
 
 const args = require('minimist')(process.argv.slice(2))
 args['port', 'debug', 'log', 'help']
-const port = args.port || process.env.PORT || 5000
 
 // print help message
 const help = (`server.js [options]
@@ -39,6 +38,8 @@ if (args.help || args.h) {
     process.exit(0)
 }
 
+// server port
+const port = args.port || process.env.PORT || 5555
 const server = app.listen(port, () => {
     console.log('App listening on port %PORT%'.replace('%PORT%', port))
 })
@@ -69,6 +70,24 @@ app.get('/app/flip/call/tails', (req, res) => {
     const guess = coin.flipACoin('tails')
     res.status(200).json({ 'call': guess.call, 'flip': guess.flip, 'result': guess.result })
 })
+
+if (args.debug) {
+    app.get('/app/log/access', (req, res) => {
+        try {
+            const stmt = logdb.prepare('SELECT * FROM access').all()
+            res.status(200).json(stmt)
+        } catch {
+            console.error(e)
+        }
+    })
+    
+    app.get('/app/error', (req, res) => {
+        res.status(500)
+        throw new Error('Error test completed successfully.')
+    })
+}
+
+
 
 app.use(function(req, res){
     res.status(404).send('404 NOT FOUND')
