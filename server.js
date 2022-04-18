@@ -2,15 +2,13 @@
 const express = require('express')
 const app = express()
 
-// require database script
-const logdb = require('./database.js')
+// require database and coin scripts
+const db = require('./database.js')
+const coin = require('./coin.js')
 
 // make express use built-in body parser
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// require coin module
-const coin = require('./coin.js')
 
 const args = require('minimist')(process.argv.slice(2))
 args['port', 'debug', 'log', 'help']
@@ -65,7 +63,7 @@ app.use((req, res, next) => {
         useragent: req.headers['user-agent']
     }
 
-    const stmt = logdb.prepare('INSERT INTO accesslog ( remoteaddr, remoteuser, time, method, url, protocol, httpversion, secure, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    const stmt = db.prepare('INSERT INTO accesslog ( remoteaddr, remoteuser, time, method, url, protocol, httpversion, secure, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
     const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.secure, logdata.status, logdata.referer, logdata.useragent)
     res.status(200).json(info)
     next()
@@ -103,7 +101,7 @@ app.get('/app/flip/call/tails', (req, res) => {
 if (args.debug) {
     app.get('/app/log/access', (req, res) => {
         try {
-            const stmt = logdb.prepare('SELECT * FROM accesslog').all()
+            const stmt = db.prepare('SELECT * FROM accesslog').all()
             res.status(200).json(stmt)
         } catch {
             console.error(e)

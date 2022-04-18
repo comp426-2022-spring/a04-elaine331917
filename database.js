@@ -1,9 +1,9 @@
 "use strict"
-const database = require('better-sqlite3')
+const Database = require('better-sqlite3')
 
-const logdb = new database('log.db')
+const db = new Database('log.db')
 
-const stmt = logdb.prepare(`SELECT name FROM sqlite_master WHERE type='table' and name='accesslog';`)
+const stmt = db.prepare(`SELECT name FROM sqlite_master WHERE type='table' and name='accesslog';`)
 let row = stmt.get()
 
 // check if table exists in database
@@ -26,10 +26,10 @@ if (row === undefined) {
             useragent TEXT
         )`
     
-    logdb.exec(sqlInit)
+    db.exec(sqlInit)
     console.log('Your database has been initialized with a new table.')
 } else {
     console.log('Database exists.')
 }
 
-module.exports = logdb
+module.exports = db
