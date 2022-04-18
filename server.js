@@ -41,7 +41,7 @@ const server = app.listen(port, () => {
 })
 
 // log == true
-if (args.log) {
+if (args.log == true) {
     const morgan = require('morgan')
     const fs = require('fs')
     const logstream = fs.createWriteStream('access.log', {flags: 'a'})
@@ -98,7 +98,7 @@ app.get('/app/flip/call/tails', (req, res) => {
 })
 
 // log and error testing
-if (args.debug) {
+if (args.debug == true) {
     app.get('/app/log/access', (req, res) => {
         try {
             const stmt = db.prepare('SELECT * FROM accesslog').all()
