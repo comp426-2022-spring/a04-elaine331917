@@ -39,14 +39,8 @@ const server = app.listen(port, () => {
     console.log('App listening on port %PORT%'.replace('%PORT%', port))
 })
 
-// log == true
-if (args.log == true) {
-    const logstream = fs.createWriteStream('./access.log', { flags: 'a' })
-    app.use(morgan('combined', { stream: logstream }))
-}
-
 // logging middleware
-app.use((req, res, next) => {
+app.use((req, res, next)=>{
     let logdata = {
         remoteaddr: req.ip,
         remoteuser: req.user,
@@ -57,14 +51,12 @@ app.use((req, res, next) => {
         httpversion: req.httpVersion,
         status: res.statusCode,
         referer: req.headers['referer'],
-        useragent: req.headers['user-agent']
+        useragent: req.headers['user-agent'],
     }
-
-    const stmt = db.prepare('INSERT INTO accesslog ( remoteaddr, remoteuser, time, method, url, protocol, httpversion, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-    const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
-    res.status(200).json(info)
+    const stmt = db.prepare('INSERT INTO accesslog (remoteaddr, remoteuser, time, method, url, protocol, httpversion, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
     next()
-})
+  })
 
 // API endpoints
 app.get('/app/', (req, res) => {
@@ -77,18 +69,20 @@ app.get('/app/', (req, res) => {
 // log and error testing
 if (args.debug == true) {
     // create endpoint /app/log/access that returns accesslog
-    app.get("/app/log/access", (req, res) => {
-        try {
-            const stmt = db.prepare('SELECT * FROM accesslog').all()
-            res.status(200).json(stmt)
-        } catch {
-            console.log("EXIT")
-        }
+    app.get('/app/log/access', (req, res) => {
+        const stmt = logdb.prepare('SELECT * FROM accesslog').all()
+        res.status(200).json(stmt)
     });
 
     app.get('/app/error', (req, res) => {
         throw new Error('Error test successful.')
     });
+}
+
+// log == true
+if (args.log == true) {
+    const logstream = fs.createWriteStream('./access.log', { flags: 'a' })
+    app.use(morgan('combined', { stream: logstream }))
 }
 
 app.get('/app/flip', (req, res) => {
