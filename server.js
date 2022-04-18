@@ -44,7 +44,7 @@ const server = app.listen(port, () => {
 // log == true
 if (args.log == true) {
     const morgan = require('morgan')
-    const logstream = fs.createWriteStream('access.log', {flags: 'a'})
+    const logstream = fs.createWriteStream('access.log', { flags: 'a' })
     app.use(morgan('combined', { stream: logstream }))
 }
 
@@ -100,7 +100,7 @@ app.get('/app/flip/call/tails', (req, res) => {
 // log and error testing
 if (args.debug == true) {
     // create endpoint /app/log/access that returns accesslog
-    app.get('/app/log/access', (req, res) => {
+    app.get("/app/log/access", (req, res) => {
         try {
             const stmt = db.prepare('SELECT * FROM accesslog').all()
             res.status(200).json(stmt)
@@ -108,15 +108,14 @@ if (args.debug == true) {
             console.error(e)
         }
     });
-    
+
     app.get('/app/error', (req, res) => {
-        res.status(500);
-        throw new Error('Error test successful.')
+        throw new Error('Error test successful.') // Express will catch this on its own.
     });
 }
 
 app.use(function(req, res){
-	res.json({"message":"Endpoint not found. (404)"});
+	res.json({"message": "Endpoint not found. (404)"});
     res.status(404);
 });
 
