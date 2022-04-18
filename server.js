@@ -1,6 +1,7 @@
 // define app with express
 const express = require('express')
 const app = express()
+const fs = require('fs')
 
 // require database and coin scripts
 const db = require('./database.js')
@@ -43,7 +44,6 @@ const server = app.listen(port, () => {
 // log == true
 if (args.log == true) {
     const morgan = require('morgan')
-    const fs = require('fs')
     const logstream = fs.createWriteStream('access.log', {flags: 'a'})
     app.use(morgan('combined', { stream: logstream }))
 }
@@ -99,6 +99,7 @@ app.get('/app/flip/call/tails', (req, res) => {
 
 // log and error testing
 if (args.debug == true) {
+    // create endpoint /app/log/access that returns accesslog
     app.get('/app/log/access', (req, res) => {
         try {
             const stmt = db.prepare('SELECT * FROM accesslog').all()
@@ -106,11 +107,12 @@ if (args.debug == true) {
         } catch {
             console.error(e)
         }
-    })
+    });
     
     app.get('/app/error', (req, res) => {
+        res.status(500);
         throw new Error('Error test successful.')
-    })
+    });
 }
 
 app.use(function(req, res){
